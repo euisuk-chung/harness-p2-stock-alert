@@ -1,4 +1,4 @@
-"""실습 자료를 **실수로 고치는 것**을 조기에 잡는다.
+"""실습 자료와 번호표 기록을 **실수로 고치는 것**을 조기에 잡는다.
 
     PreToolUse 훅. 도구가 실행되기 전에 판정한다. 종료 코드 2 면 막힌다.
 
@@ -11,19 +11,19 @@
 | **훅을 끄는 것** | `.claude/settings.json` 을 고치면 이 훅이 안 돈다. (그건 막는다 — 아래) |
 | **다른 도구** | MCP 파일 도구, 다른 에디터, 터미널에서 직접 |
 | **symlink · 별칭 경로** | 다른 이름으로 같은 파일에 닿을 수 있다 |
-| **차단 장치를 건너뛰는 실행** | `claude -p --bare` 처럼 차단 장치를 읽지 않는 실행에서는 **이 장치가 아예 안 걸린다** |
+| **`--bare`** | 차단 장치를 전부 건너뛴다. scripts/request.sh 에 없음을 tests/test_scripts.py 가 본다 |
 
 **진짜 경계가 필요하면** 보호 대상을 에이전트 작업공간 밖이나 읽기 전용 마운트에 두고,
 CI 가 해시로 대조해야 한다. 이 훅은 거기까지 하지 않는다.
 
 ## 그래도 값어치가 있는 이유
 
-학생이 대화형으로 Claude Code 를 쓰다가 **자료 원문을 고치는 흔한 실수**를 잡는다.
+학생이 대화형으로 Claude Code 를 쓰다가 **자료를 고치는 흔한 실수**를 잡는다.
 그게 왜 위험한지가 이 프로젝트의 주제와 직접 닿는다.
 
-    인용 검사(G3)는 quote 가 cases/sources/ 원문에 그대로 있는지 본다.
-    원문을 고칠 수 있으면 **지어낸 문장을 원문에 써 넣고** 통과할 수 있다.
-    baseline.json 도 같다 — 기준을 낮추면 회귀가 사라진다.
+    값 검사(C3)는 문장의 숫자가 cases/data/ 시세와 같은지 본다.
+    시세 파일을 고칠 수 있으면 **지어낸 숫자에 시세를 맞추고** 통과할 수 있다.
+    claims/ 는 더 나쁘다 — 번호표 기록을 지우면 **이미 보낸 알림이 다시 나간다.**
 
 > **검사를 세우면 그 검사를 피하는 길이 생긴다.** 여기서는 그 길이 채점표를 고치는 것이다.
 
@@ -42,16 +42,14 @@ from pathlib import Path, PurePosixPath
 
 # 에이전트가 고치면 안 되는 것. **경로 경계 단위로** 본다.
 PROTECTED_DIRS = {
-    "cases/sources": "자료 원문. 여기를 고칠 수 있으면 인용 검사(G3)가 무의미해진다",
-    "samples/reference": "회귀 비교의 고정 입력. 바꾸면 어제와 비교할 수 없다",
+    "cases": "시세와 조건. 여기를 고칠 수 있으면 값 검사(C3)가 무의미해진다. 조건은 사람이 적는다",
+    "samples/reference": "저장된 답. 흐름 점검(scripts/flow_check.py)의 고정 입력이다",
     ".claude": "차단 장치 자신. 여기를 고칠 수 있으면 나머지 보호가 전부 무의미하다",
-    # 12차시에 더한 한 줄 — 작성 담당이 늘 지킬 규칙(스킬). 7차시에 Claude 와 지은 뒤 여기서 잠근다.
-    ".claude/skills": "작성 담당이 늘 따를 지시. 여기를 고칠 수 있으면 대화 창의 AI 가 그 지시를 스스로 바꿀 수 있다",
+    "claims": "번호표 기록. 지우면 이미 보낸 알림이 다시 나간다. 정리는 claims_cli.py 로 사람이 한다",
+    "outbox": "보낸 알림 기록. 나간 뒤를 알아채고 거둬들이려면 이 기록이 있어야 한다",
 }
-BUILDABLE = {"commands", "agents", "skills"}   # .claude/ 안에서 막지 않는 하위 폴더
-
 PROTECTED_FILES = {
-    "baseline.json": "회귀 기준. 여기를 낮추면 하락이 사라진다",
+    "schema.json": "문구 형식 계약. 여기를 느슨하게 하면 형식 검사(C1)가 무의미해진다",
 }
 
 # 파일을 쓰는 도구들. Notebook 은 **경로 필드 이름이 다르다.**
@@ -80,7 +78,7 @@ WRITE_MARKERS = {"tee", "cp", "Set-Content", "Add-Content", "Out-File", "Copy-It
 def protected(target: str) -> str | None:
     """보호 대상이면 이유를, 아니면 None.
 
-    ⚠️ 부분 문자열로 보지 않는다. `cases/sources-old/` 처럼 **다른 폴더**를
+    ⚠️ 부분 문자열로 보지 않는다. `cases-old/` 처럼 **다른 폴더**를
     잘못 막으면 실습이 안 된다. 경로 조각 단위로 본다.
     """
     if not target:
@@ -95,11 +93,6 @@ def protected(target: str) -> str | None:
             #    `rm -rf claims/` 처럼 **통째로 지우는 것**이 빠져나갔다.
             #    안의 파일 하나보다 디렉터리째가 더 나쁜데 그쪽이 안 막혔다.
             if fragment in PROTECTED_DIRS and i + depth <= len(parts):
-                # .claude/ 안에서 명령·에이전트·스킬 파일은 이 과정에서 Claude 가 짓는 대상이라 여기서는 넘긴다.
-                # 지키는 것은 설정(settings.json)과 차단 장치 코드(hooks/) — 이것을 고치면 나머지 보호가 무의미해진다.
-                # 다 지은 스킬은 위 목록에 ".claude/skills" 한 줄을 더해 잠근다(12차시) — 다음 바퀴(두 조각 깊이)에서 막힌다.
-                if fragment == ".claude" and i + 1 < len(parts) and parts[i + 1] in BUILDABLE:
-                    continue
                 return PROTECTED_DIRS[fragment]
     if parts and parts[-1] in PROTECTED_FILES:
         return PROTECTED_FILES[parts[-1]]
@@ -168,7 +161,7 @@ def main() -> int:
         # Claude Code 는 exit 2 만 "차단" 으로 보고, 그 밖의 0 아닌 코드는 **진행**이다.
         # 즉 fail-closed 는 도구가 주는 기본값이 아니라, 훅이 모든 예외를 잡아
         # 2 로 끝내야 얻는 성질이다. 이 훅은 반대를 고른다: **훅이 학생의 작업을 세우면 안 된다.**
-        # 그래서 이건 경계가 아니다.
+        # 그래서 이건 경계가 아니다 — 경계는 guard.py(예외가 나도 2 로 막는다)와 settings.json 의 permissions 다.
         return 0
 
     tool = payload.get("tool_name") or ""

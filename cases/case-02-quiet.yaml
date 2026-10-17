@@ -1,0 +1,26 @@
+# 아무 조건도 안 걸리는 날. **알림이 나가면 안 된다.**
+#
+# "안 보내는 것"도 정상 동작이다. 이걸 케이스로 두지 않으면
+# 늘 보내는 파이프라인이 통과해 버린다.
+
+expect: quiet
+
+data: data/2026-09-01.json
+
+conditions:
+  - id: aapl-above-200
+    symbol: AAPL
+    kind: above
+    threshold: 200
+
+  - id: tsla-above-300
+    symbol: TSLA
+    kind: above
+    threshold: 300
+
+  - id: nvda-volume-spike
+    symbol: NVDA
+    kind: volume_above
+    threshold: 200000000
+
+expected_hits: []

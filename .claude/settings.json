@@ -4,10 +4,18 @@
     "deny": [
       "Bash(curl:*)",
       "Bash(wget:*)",
-      "Bash(gh pr merge:*)",
-      "Bash(git push origin main:*)",
+      "Bash(gh:*)",
+      "Bash(scripts/approve.sh:*)",
+      "Bash(bash scripts/approve.sh:*)",
+      "Bash(python3 scripts/deliver.py:*)",
+      "Bash(python scripts/deliver.py:*)",
+      "Bash(python3 claims_cli.py:*)",
+      "Bash(python claims_cli.py:*)",
       "Edit(cases/**)",
-      "Edit(requests/*/sources/**)",
+      "Edit(claims/**)",
+      "Edit(outbox/**)",
+      "Bash(uv run python scripts/deliver.py:*)",
+      "Bash(uv run python claims_cli.py:*)",
       "Skill(drafter-rules)"
     ]
   },

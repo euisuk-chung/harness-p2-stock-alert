@@ -1,0 +1,48 @@
+# 정책 — Claude(본 세션과 drafter)가 무엇을 써도 되고 무엇은 안 되는지. guard.py 가 도구를 부르기 전마다 읽는다.
+#
+# 목록 밖의 것은 막는다(허용 목록). 모르는 도구가 새로 생겨도 막히게 하려는 것이다.
+# settings.json 의 permissions 도 같은 것을 한 번 더 막는다 — 한 곳이 조용히 꺼져도 다른 한 곳이 남게.
+#
+# 이 프로젝트에서 가장 중요한 줄: **보내는 명령은 허용 목록 어디에도 없다.**
+# 알림은 되돌릴 수 없다. 보내기는 사람이 scripts/approve.sh 를 칠 때 scripts/deliver.py 만 한다.
+
+# 쓸 수 있는 도구. 하위 에이전트(Agent)는 백그라운드로 띄우지 못하게 guard.py 가 따로 막는다.
+allow_tools:
+  - Read
+  - Write
+  - Agent
+  - Task
+  - Bash
+
+# 파일을 쓸 수 있는 곳. 이 밖의 Write·Edit 은 막는다.
+# 요청 폴더의 상태 파일(state.json·events.jsonl)·지문(approval.json)·전달 기록(delivery.json)은 스크립트만 쓴다.
+# 번호표 기록(claims/)과 보낸 알림(outbox/)도 여기 없다 — 지우면 이미 보낸 알림이 다시 나간다.
+writable:
+  - requests/*/draft.json
+
+# Bash 명령에 이 글자가 들어 있으면 막는다(대소문자 무시). 허용 목록과 겹치지만 이유를 적어 두려고 따로 둔다.
+deny_commands:
+  - "curl "
+  - "wget "
+  - "rm -rf"
+  - "--no-verify"
+  - "sudo "
+  # 되돌릴 수 없는 일 — 보내기와 번호표 건드리기는 사람이 한다
+  - "approve.sh"
+  - "deliver.py"
+  - "sink"
+  - "claims_cli.py"
+  - "claims/"
+  - "outbox/"
+  - "gh "
+  - "nc "
+
+# Bash 로 실행해도 되는 명령의 머리. 이 밖은 막는다.
+allow_commands:
+  - "uv run python scripts/open_request.py"
+  - "ls"
+
+# 한 요청 안에서 도구를 부를 수 있는 횟수(본 세션과 drafter 를 합쳐). 넘으면 막고, 흐름은 failed 로 끝난다.
+# drafter 한 번이 요청서(brief.json)를 읽고 문구를 쓰는 데 2~3번, 본 세션이 drafter 를 부르는 데 1번 —
+# 작성 세 번이면 12번 안팎이다. 읽기를 몇 번 더 해도 들어갈 만큼 넉넉히 잡았다(블로그는 원문이 넷이라 40).
+max_tool_calls: 30
