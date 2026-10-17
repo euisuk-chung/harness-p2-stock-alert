@@ -1,0 +1,16 @@
+# 프로젝트 2(harness-p2-stock-alert)의 파이썬 환경. 실습 저장소 안 alert/ 로 clone 해도, 따로 받아도 이 폴더가 맨 위다.
+# 저장소 맨 위에서 `uv sync` 한 번이면 여기에 .venv 를 만들고 아래 둘을 넣는다. 그 뒤로는 어느 하위 폴더에서든
+# `uv run python …` 이 이 .venv 를 쓴다 — 첫 `uv run` 이 sync 를 대신하기도 한다.
+# 이 폴더의 코드는 설치하지 않고 그 자리에서 실행한다.
+[project]
+name = "harness-p2-stock-alert"
+version = "0.1.0"
+description = "프로젝트 2 주가 조건 알림 완성 코드"
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=6.0,<7",     # 흐름도·정책(graph.yaml · policies.yaml)과 케이스를 읽는다 — 차단 장치도 쓴다
+    "jsonschema>=4.0,<5", # 초안이 정해진 형식을 지켰는지 본다
+]
+
+[tool.uv]
+package = false
