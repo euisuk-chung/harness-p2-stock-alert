@@ -26,4 +26,4 @@ Claude Code 는 연 폴더의 `.claude/` 만 읽는다 — 다른 폴더에서 �
 - 문구는 drafter 만 쓴다. 본 세션은 진행만 맡고, **보내지 않는다** — `scripts/approve.sh`·`scripts/deliver.py`·`claims_cli.py` 는 사람이 친다.
 - `cases/`(시세·조건)와 `claims/`(번호표 기록)·`outbox/`(보낸 알림)는 고치지 않는다. 번호표 기록을 지우면 이미 보낸 알림이 다시 나간다.
 - `state.json`·`events.jsonl`·`STATUS.md`·`approval.json`·`delivery.json` 은 차단 장치와 스크립트가 쓴다. 고치지 않는다.
-- 시험(모델 없음): `uv run python tests/test_checks.py` · `uv run python tests/test_claims_cli.py` · `uv run python tests/test_scripts.py` · `uv run python scripts/flow_check.py --case case-01-breakout`
+- 시험(모델 없음): `uv run python tests/test_checks.py` · `uv run python tests/test_idempotency.py` · `uv run python tests/test_claims_cli.py` · `uv run python tests/test_scripts.py` · `uv run python scripts/flow_check.py --case case-01-breakout`
