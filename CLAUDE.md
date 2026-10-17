@@ -19,10 +19,11 @@ Claude Code 는 연 폴더의 `.claude/` 만 읽는다 — 다른 폴더에서 �
 - 차단 장치(`.claude/settings.json`): `protect_sources.py`(시세·번호표 기록 보호) · `guard.py`(막기 — `policies.yaml`) · `run_review.py`(문구가 쓰이면 검수) · `next_step.py`(멈추려 할 때 다음 단계 — `graph.yaml`) · `show_status.py`(새 세션에 진행표). 이 가운데 `protect_sources.py` 는 지킬 폴더가 달라 고쳐 썼고, 나머지 넷(과 `_state.py`)은 블로그와 **같은 파일**이다. 그 밖에 다른 것은 설정 파일의 거부 목록 · `graph.yaml` · `policies.yaml` · 명령 · 에이전트다
 - 흐름도 `graph.yaml` · 정책 `policies.yaml`
 - 끝 상태: Claude 흐름은 `needs_approval` · `needs_human` · `failed`, 흐름 밖에서 `quiet`(request.sh) · `sent` · `duplicate` · `needs_human`(deliver.py)
+- 보내다 멈춘 알림의 대사: `uv run python claims_cli.py list` → `mark-sent` / `release-unsent`(사람이 바깥 발송 기록을 보고)
 
 ## 지킬 것
 
-- 문구는 drafter 만 쓴다. 본 세션은 진행만 맡고, **보내지 않는다** — `scripts/approve.sh`·`scripts/deliver.py` 는 사람이 친다.
+- 문구는 drafter 만 쓴다. 본 세션은 진행만 맡고, **보내지 않는다** — `scripts/approve.sh`·`scripts/deliver.py`·`claims_cli.py` 는 사람이 친다.
 - `cases/`(시세·조건)와 `claims/`(번호표 기록)·`outbox/`(보낸 알림)는 고치지 않는다. 번호표 기록을 지우면 이미 보낸 알림이 다시 나간다.
 - `state.json`·`events.jsonl`·`STATUS.md`·`approval.json`·`delivery.json` 은 차단 장치와 스크립트가 쓴다. 고치지 않는다.
-- 시험(모델 없음): `uv run python tests/test_checks.py` · `uv run python tests/test_scripts.py` · `uv run python scripts/flow_check.py --case case-01-breakout`
+- 시험(모델 없음): `uv run python tests/test_checks.py` · `uv run python tests/test_claims_cli.py` · `uv run python tests/test_scripts.py` · `uv run python scripts/flow_check.py --case case-01-breakout`
