@@ -1,0 +1,28 @@
+{
+  "title": "alert message",
+  "description": "모델은 문장만 쓴다. 무엇이 걸렸는지는 이미 결정론으로 정해졌고, 여기 그대로 담긴다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["headline", "lines"],
+  "properties": {
+    "headline": { "type": "string", "minLength": 4, "maxLength": 120 },
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["condition_id", "text", "value"],
+        "properties": {
+          "condition_id": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 4, "maxLength": 200 },
+          "value": {
+            "type": "number",
+            "description": "그 조건이 본 관측값. 모델이 지어내면 검사가 잡는다."
+          }
+        }
+      }
+    }
+  }
+}
