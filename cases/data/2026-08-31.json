@@ -1,0 +1,9 @@
+{
+  "_note": "합성 시세다. 실제 시장 데이터가 아니다.",
+  "observed_at": "2026-08-31T13:30:00+09:00",
+  "quotes": [
+    {"symbol": "AAPL", "last": 214.6, "prev_close": 198.2, "volume": 84213000},
+    {"symbol": "TSLA", "last": 271.4, "prev_close": 279.9, "volume": 61220400},
+    {"symbol": "NVDA", "last": 129.8, "prev_close": 128.9, "volume": 233104000}
+  ]
+}

@@ -1,0 +1,10 @@
+requests/
+logs/
+claims/
+outbox/
+.tick.lock
+__pycache__/
+*.pyc
+
+# 파이썬 가상환경 (uv sync 가 만든다)
+.venv/
