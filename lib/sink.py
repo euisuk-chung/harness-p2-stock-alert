@@ -25,6 +25,7 @@
 from __future__ import annotations
 
 import json
+import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,6 +59,13 @@ class Sink:
         }
         with self.path.open("a", encoding="utf-8") as fp:
             fp.write(json.dumps(record, ensure_ascii=False) + "\n")
+        # 교육용: ALERT_CRASH_AFTER_SEND=1 이면 **첫 줄을 쓴 직후** 죽는다 (파일당 한 번).
+        # "발송 뒤 · complete 전" 구간 — 효과는 나갔는데 기록이 안 된 상태를 만든다.
+        if os.environ.get("ALERT_CRASH_AFTER_SEND") and self.count() == 1:
+            raise RuntimeError(
+                f"교육용 crash: {effect_ref} 를 보낸 직후, 기록 전에 죽었다 (ALERT_CRASH_AFTER_SEND).\n"
+                f"  claims 에는 SENDING 이 남는다. 같은 승인을 다시 주면 이어받고, claims_cli.py list 로 대사한다."
+            )
         return effect_ref
 
     # ---------- 세기 ----------
